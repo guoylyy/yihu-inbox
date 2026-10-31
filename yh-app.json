@@ -1,0 +1,24 @@
+{
+  "code": "inbox",
+  "name": "收件箱",
+  "icon": "📥",
+  "category": "效率",
+  "description": "一句话记待办，也能派单给同事：今天该做的、谁在做，一屏看清",
+  "version": "0.1.1",
+  "port": 3000,
+  "health": "/health",
+  "callback": "/sso/callback",
+  "mcp": "/mcp",
+  "database": true,
+  "memory": "256m",
+  "visibility": null,
+  "isDefault": false,
+  "env": {},
+  "deploy": {
+    "branch": "release",
+    "mode": "manual"
+  },
+  "ui": {
+    "responsive": true
+  }
+}

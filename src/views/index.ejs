@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<base href="<%= base %>">
+<title>收件箱</title>
+<link rel="stylesheet" href="static/app.css?v=<%= version %>">
+<script src="static/app.js?v=<%= version %>" defer></script>
+</head>
+<body>
+<main class="page">
+  <header class="top">
+    <h1>收件箱</h1>
+    <% if (version) { %><span class="ver" id="version">v<%= version %></span><% } %>
+  </header>
+
+  <% if (problem) { %>
+    <p class="empty"><%= problem %></p>
+  <% } else { %>
+    <nav class="tabs" aria-label="视图">
+      <% for (const [key, label] of tabs) { %>
+        <a class="tab<%= key === view ? ' on' : '' %>" href="?view=<%= key %>" data-view="<%= key %>"<%- key === view ? ' aria-current="page"' : '' %>><%= label %></a>
+      <% } %>
+    </nav>
+
+    <form class="quick" id="quick" autocomplete="off">
+      <input id="quick-input" name="text" type="text" maxlength="<%= inputMax %>" placeholder="一句话记下要做的事" aria-label="一句话记下要做的事" enterkeyhint="done">
+      <button class="btn primary" id="quick-btn" type="submit">记下</button>
+    </form>
+
+    <section id="list"><%- include('partials/list') %></section>
+  <% } %>
+</main>
+
+<dialog class="sheet" id="sheet" aria-labelledby="sheet-title">
+  <form class="sheet-box" id="task-form" novalidate>
+    <header class="sheet-head">
+      <h2 id="sheet-title">确认待办</h2>
+      <button class="icon" type="button" data-close aria-label="关闭">×</button>
+    </header>
+    <div class="sheet-body">
+      <p class="note-line" id="sheet-hint" hidden></p>
+      <label class="field"><span>标题</span>
+        <textarea id="f-title" rows="2" maxlength="500" required></textarea>
+      </label>
+      <label class="field"><span>截止日期</span>
+        <input id="f-due" type="date">
+      </label>
+      <fieldset class="field">
+        <legend>优先级</legend>
+        <div class="seg">
+          <label><input type="radio" name="priority" value="0"><span>无</span></label>
+          <label><input type="radio" name="priority" value="1"><span>低</span></label>
+          <label><input type="radio" name="priority" value="2"><span>中</span></label>
+          <label><input type="radio" name="priority" value="3"><span>高</span></label>
+        </div>
+      </fieldset>
+      <div class="field">
+        <span id="assign-label">指派给</span>
+        <button class="pick" id="f-assign" type="button" aria-labelledby="assign-label f-assign-name"><span id="f-assign-name">不指派</span><span aria-hidden="true">›</span></button>
+        <p class="note-line assign-hint" id="f-assign-hint" hidden></p>
+        <div class="cands" id="f-assign-cands" hidden></div>
+      </div>
+      <label class="field"><span>备注</span>
+        <textarea id="f-note" rows="2" maxlength="5000"></textarea>
+      </label>
+    </div>
+    <footer class="sheet-foot">
+      <button class="btn primary wide" id="sheet-save" type="submit">保存</button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog class="sheet" id="picker" aria-labelledby="picker-title">
+  <div class="sheet-box">
+    <header class="sheet-head">
+      <h2 id="picker-title">指派给</h2>
+      <button class="icon" type="button" data-close aria-label="关闭">×</button>
+    </header>
+    <div class="sheet-body">
+      <input id="picker-q" type="search" placeholder="搜姓名或部门" aria-label="搜姓名或部门">
+      <p class="note-line" id="picker-msg" hidden></p>
+      <ul class="people" id="picker-list"></ul>
+    </div>
+    <footer class="sheet-foot">
+      <button class="btn wide" id="picker-none" type="button">不指派</button>
+    </footer>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

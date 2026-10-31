@@ -1,0 +1,29 @@
+<% const EMPTY = { today: '今天没有到期的事。', week: '本周没有到期的事。', open: '没有未完成的事。', done: '还没有完成的事。' } %>
+<% if (!tasks.length) { %>
+  <div class="empty">
+    <p><%= EMPTY[view] %></p>
+    <button class="example" type="button" data-example="明天下午三点前把合同发给张三，重要">试试：明天下午三点前把合同发给张三，重要</button>
+  </div>
+<% } else { %>
+  <ul class="list">
+    <% for (const t of tasks) { %>
+      <li class="task<%= t.status === 'done' ? ' done' : '' %>" data-id="<%= t.id %>">
+        <label class="check">
+          <input type="checkbox" aria-label="完成：<%= t.title %>"<%= t.status === 'done' ? ' checked' : '' %>>
+          <span class="box"></span>
+        </label>
+        <button class="row" type="button" data-open>
+          <span class="title" title="<%= t.title %>"><% if (t.priority > 0) { %><i class="dot p<%= t.priority %>" title="优先级 <%= ['', '低', '中', '高'][t.priority] %>"></i><% } %><%= t.title %></span>
+          <% if (t.due || t.assignee || t.from || t.status === 'done') { %>
+            <span class="meta">
+              <% if (t.due) { %><span class="<%= t.overdue ? 'late' : '' %>"><%= t.due %></span><% } %>
+              <% if (t.status === 'done' && t.done_label) { %><span>完成于 <%= t.done_label %></span><% } %>
+              <% if (t.assignee) { %><span>指派给 <%= t.assignee %></span><% } %>
+              <% if (t.from) { %><span>来自 <%= t.from %></span><% } %>
+            </span>
+          <% } %>
+        </button>
+      </li>
+    <% } %>
+  </ul>
+<% } %>
