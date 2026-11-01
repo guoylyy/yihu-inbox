@@ -216,8 +216,7 @@ $('task-form').addEventListener('submit', async (e) => {
       $('quick-input').value = ''
       sheet.close()
       await loadList()
-      if (created.duplicate) toast('刚记过了')
-      else if (!listEl.querySelector(`[data-id="${created.id}"]`)) toast('已记下，这条不在当前视图，到「全部」里看')
+      if (!listEl.querySelector(`[data-id="${created.id}"]`)) toast('已记下，这条不在当前视图，到「全部」里看')
     }
   } catch (err) {
     toast(err.message)

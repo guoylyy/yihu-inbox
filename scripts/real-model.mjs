@@ -32,7 +32,7 @@ if (parsed.assignee) {
   const brief = (u) => u && { id: u.id, name: u.name, dept: u.dept }
   console.log('平台用户匹配：', JSON.stringify({ status, user: brief(user), candidates: candidates.map(brief) }))
 }
-const { task, duplicate } = await createTasks({ pool }).create(1, parsed, { source: 'self' })
+const { task, duplicate } = await createTasks({ pool }).create(1, parsed, { source: 'self', dedupe: true })
 console.log('最终记录：', JSON.stringify({ ...task, duplicate }))
 await pool.end()
 process.exit(parsed.parsed ? 0 : 1)

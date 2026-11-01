@@ -101,8 +101,7 @@ export function createApp({ ws, pool, getReady = () => !!pool, parseTimeoutMs })
 
   app.post('/api/tasks', requireReady, requireUser, wrap(async (req, res) => {
     await checkAssignee(req.body?.assignee_id, req.me)
-    const { task, duplicate } = await tasks.create(req.me.id, req.body || {}, { source: 'self' })
-    if (duplicate) return res.json({ ...toJson(task, req.me), duplicate: true })
+    const { task } = await tasks.create(req.me.id, req.body || {}, { source: 'self' })
     ws.track(req.me, 'task.create', { source: 'self', assigned: !!task.assignee_id })
     notifyAssigned(task, req.me)
     res.status(201).json(toJson(task, req.me))

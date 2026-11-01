@@ -29,7 +29,7 @@ YH_CLIENT_ID=… YH_CLIENT_SECRET=… YH_API_URL=<平台地址> DATABASE_URL=mys
 - 版本号只写在 `yh-app.json` 和 `package.json`，页面、`/health`、MCP 都读清单
 - 日期只在 `src/dates.js` 里算，「今天」按 `INBOX_TZ`（默认 Asia/Shanghai），不用数据库的 `CURDATE()`
 - 改表：`src/db.js` 的 `ADDED_COLUMNS` 登记新列，要可空或有默认值（回滚不回库）
-- 去重在 `tasks.create`：同一人 60 秒内标题逐字相同、未完成、截止日相同的只存一条，靠 `INSERT ... SELECT ... WHERE NOT EXISTS`；并发时可能死锁，`create` 里重试
+- 去重在 `tasks.create`，调用方传 `dedupe: true` 才开，只给 MCP 和内部的快捷记一条；手工表单（`POST /api/tasks`）永不去重。同一创建人 60 秒内指派对象、截止日相同、标题逐字相同、未完成的只存一条，靠 `INSERT ... SELECT ... WHERE NOT EXISTS`；并发时可能死锁，`create` 里重试
 - 人名只在确认弹层预填（`matchAssignee`），保存才写库
 - `src/yh-one.mjs` 是平台 SDK 的拷贝，不要改
 - `tags` 列和 `source='app'` 留给 v0.2，v0.1 不写入

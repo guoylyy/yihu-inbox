@@ -20,8 +20,8 @@ const RETRY_STEP_MS = 15
 const COLUMNS = 'id, owner_id, assignee_id, title, note, due_date, priority, status, done_at, source, created_at, updated_at'
 const MINE = '(owner_id = ? OR assignee_id = ?)'
 const ORDER_OPEN = 'ORDER BY due_date IS NULL, due_date, priority DESC, id DESC'
-// 算重复的条件。title 列不分大小写和重音，这里按字节比才是逐字相同；due_date 用 <=>，两边都没日期也算相同
-const SAME_TASK = "owner_id = ? AND status = 'open' AND due_date <=> ? AND title COLLATE utf8mb4_0900_bin = ? AND created_at >= ?"
+// 算重复的条件。title 列不分大小写和重音，这里按字节比才是逐字相同；assignee_id、due_date 用 <=>，两边都空也算相同
+const SAME_TASK = "owner_id = ? AND assignee_id <=> ? AND status = 'open' AND due_date <=> ? AND title COLLATE utf8mb4_0900_bin = ? AND created_at >= ?"
 
 // 视图是固定的几条语句，view 参数只用来选语句，不进 SQL
 const VIEW_SQL = {
@@ -104,7 +104,8 @@ export function createTasks({ pool, now = () => Date.now() }) {
     return rows[0]
   }
 
-  async function create(userId, input, { source = 'self' } = {}) {
+  // dedupe 只给会重复提交的调用方（agent、快捷记一条）；人在表单里点的每一次都是真的，默认不去重
+  async function create(userId, input, { source = 'self', dedupe = false } = {}) {
     const title = parseTitle(input.title)
     const note = parseNote(input.note)
     const due = parseDue(input.due_date)
@@ -113,14 +114,15 @@ export function createTasks({ pool, now = () => Date.now() }) {
     const attempt = () => tx(async (conn) => {
       // created_at 由这里写，和窗口用同一个时钟；列精确到秒，先取整，免得被数据库四舍五入
       const at = new Date(Math.floor(now() / 1000) * 1000)
-      const same = [userId, due, title, new Date(at.getTime() - DEDUPE_MS)]
+      const row = [userId, assigneeId, title, note, due, priority, source, at]
+      const same = [userId, assigneeId, due, title, new Date(at.getTime() - DEDUPE_MS)]
       // 查和插是一条语句：扫描时持有共享锁，并发的同一条要么等对方提交后看到它，要么死锁被回滚（下面重试）
       // 共享的是索引间隙，同一人并发建不同标题也会死锁，所以重试要错开，否则一起重来又撞一次
       const [r] = await conn.execute(
         `INSERT INTO inbox_task (owner_id, assignee_id, title, note, due_date, priority, tags, source, created_at)
          SELECT ?, ?, ?, ?, ?, ?, '[]', ?, ? FROM DUAL
-         WHERE NOT EXISTS (SELECT 1 FROM inbox_task WHERE ${SAME_TASK})`,
-        [userId, assigneeId, title, note, due, priority, source, at, ...same]
+         ${dedupe ? `WHERE NOT EXISTS (SELECT 1 FROM inbox_task WHERE ${SAME_TASK})` : ''}`,
+        dedupe ? [...row, ...same] : row
       )
       if (!r.affectedRows) {
         // 上面的锁还在，这条不会被改掉；FOR SHARE 读最新已提交的，不受事务快照影响

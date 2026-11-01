@@ -115,7 +115,7 @@ try {
     const { ctx, page } = await loginContext(browser, 11, { width, height })
     const label = `${tag}`
 
-    check(`${label} 版本号在右上角可见`, await page.locator('#version').isVisible() && (await page.locator('#version').textContent()) === 'v0.1.1')
+    check(`${label} 版本号在右上角可见`, await page.locator('#version').isVisible() && (await page.locator('#version').textContent()) === 'v0.1.2')
     const box = await page.locator('#version').boundingBox()
     check(`${label} 版本号靠右上`, box.x + box.width > width / 2 && box.y < 60, `x=${Math.round(box.x)} y=${Math.round(box.y)}`)
     await page.waitForSelector('.task')
@@ -223,7 +223,7 @@ try {
     await ctx.close()
   }
 
-  // v0.1.1：去重提示和人名预填
+  // 手工连记不去重（v0.1.2），人名预填
   {
     const { ctx, page } = await loginContext(browser, 11, { width: 375, height: 667 })
     const keep = platform.state.llm
@@ -242,13 +242,10 @@ try {
     await page.waitForSelector('.task:has-text("买牛奶")')
     await openConfirm('买牛奶')
     await page.click('#sheet-save')
-    await page.waitForSelector('#toast:not([hidden])')
-    check('375 重复时轻提示', (await page.textContent('#toast')) === '刚记过了')
-    check('375 重复时弹层关闭、列表只有一条', !(await page.locator('#sheet[open]').count()) && await page.locator('.task:has-text("买牛奶")').count() === 1)
-    check('375 重复时库里只有一行', (await rowsOf('买牛奶')).length === 1)
-    await page.screenshot({ path: `${OUT}/375-duplicate.png` })
-    await noScroll(page, '375 重复提示')
-    await page.evaluate(() => { document.getElementById('toast').hidden = true })
+    await page.waitForFunction(() => [...document.querySelectorAll('.task')].filter((t) => t.textContent.includes('买牛奶')).length === 2)
+    check('375 手工连记同名：弹层关闭、列表两条、没有提示', !(await page.locator('#sheet[open]').count()) && await page.locator('#toast').isHidden())
+    check('375 手工连记同名：库里两行', (await rowsOf('买牛奶')).length === 2)
+    await noScroll(page, '375 手工连记同名')
 
     sayAssignee('郑国栋')
     await openConfirm('给郑国栋：整理客户名单')
@@ -292,7 +289,7 @@ try {
     await page.click('#sheet [data-close]')
 
     platform.state.llm = keep
-    check('375 去重和预填流程控制台无报错', page.problems.length === 0, page.problems.join(' | ').slice(0, 300))
+    check('375 手工连记和预填流程控制台无报错', page.problems.length === 0, page.problems.join(' | ').slice(0, 300))
     await ctx.close()
   }
 

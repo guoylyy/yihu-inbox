@@ -34,7 +34,7 @@ export function buildTools({ tasks, onCreated }) {
       },
       run: async (user, args) => {
         const today = todayIn()
-        const { task, duplicate } = await tasks.create(user.id, toolInput(args, today), { source: 'ai' })
+        const { task, duplicate } = await tasks.create(user.id, toolInput(args, today), { source: 'ai', dedupe: true })
         if (duplicate) return { ...brief(task, today, user), duplicate: true }
         onCreated?.(user, task)
         return brief(task, today, user)
