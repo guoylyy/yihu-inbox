@@ -8,6 +8,8 @@
 .copy-buffer { position: fixed; top: 0; left: -9999px; }
 .confirm-title { margin-bottom: 8px; font-size: 16px; font-weight: 600; }
 [hidden] { display: none !important; }
+/* 顶栏图标：品牌 SVG 内联在 head.ejs，8px 间距和垂直居中由 .yh-top-brand 给 */
+.yh-top-icon { flex: none; width: 20px; height: 20px; }
 
 /* 页头：标题在左，操作在右，窄屏换行 */
 .head-row { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
@@ -205,6 +207,7 @@ kbd { display: inline-block; min-width: 24px; padding: 0 6px; background: var(--
 }
 
 @media (max-width: 640px) {
+  .yh-top-icon { width: 18px; height: 18px; }
   .stats--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 

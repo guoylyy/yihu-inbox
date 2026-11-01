@@ -1,10 +1,10 @@
 {
   "code": "inbox",
   "name": "收件箱",
-  "icon": "📥",
+  "icon": "svg:brand-inbox",
   "category": "效率",
   "description": "一句话记待办、派单给同事，批量整理、导入别的系统里的事，每周看规律",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "port": 3000,
   "health": "/health",
   "callback": "/sso/callback",

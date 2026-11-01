@@ -239,7 +239,7 @@ test('关于页：渲染八项', async () => {
 test('每一页都有顶栏：应用名、版本、设置、关于、退出', async () => {
   for (const path of ['/', '/import', '/settings', '/about']) {
     const { text } = await alice.get(path)
-    for (const part of ['class="yh-top"', '收件箱', 'href="settings"', 'href="about"', 'href="logout"', 'yh-vi.css']) assert.ok(text.includes(part), `${path} ${part}`)
+    for (const part of ['class="yh-top"', '收件箱', 'class="yh-top-icon"', 'rel="icon" type="image/svg+xml" href="static/icon.svg', 'href="settings"', 'href="about"', 'href="logout"', 'yh-vi.css']) assert.ok(text.includes(part), `${path} ${part}`)
     assert.match(text, new RegExp(`id="version">v${VERSION}<`), path)
   }
 })
@@ -265,7 +265,7 @@ test('退出：清会话，转到平台退出页', async () => {
   assert.match(r.headers.get('location'), /\/logout/)
 })
 
-test('清单、VERSION、package 都是 0.2.1', () => {
-  assert.equal(VERSION, '0.2.1')
-  assert.equal(readFileSync('VERSION', 'utf8').trim(), '0.2.1')
+test('清单、VERSION、package 都是 0.2.2', () => {
+  assert.equal(VERSION, '0.2.2')
+  assert.equal(readFileSync('VERSION', 'utf8').trim(), '0.2.2')
 })

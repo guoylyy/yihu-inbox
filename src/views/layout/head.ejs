@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <base href="<%= base %>">
 <title>收件箱</title>
+<link rel="icon" type="image/svg+xml" href="static/icon.svg?v=<%= version %>">
 <link rel="stylesheet" href="static/yh-vi.css?v=<%= version %>">
 <link rel="stylesheet" href="static/app.css?v=<%= version %>">
 <script src="static/app.js?v=<%= version %>" defer></script>
@@ -12,7 +13,14 @@
 <% } %></head>
 <body>
 <header class="yh-top">
-  <a class="yh-top-brand" href="./"><span aria-hidden="true">📥</span>收件箱</a>
+  <a class="yh-top-brand" href="./">
+    <svg class="yh-top-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.5 17h5l1.5-3H18a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h2Z"/>
+      <path d="M6.37 13.08L7 5.95A2 2 0 0 1 9.16 4.13L15.64 4.7A2 2 0 0 1 17.46 6.87L16.83 13.99"/>
+      <path d="M15 7.75v4l-3.46-2Z" fill="#d2521e" stroke="none"/>
+    </svg>
+    收件箱
+  </a>
   <div class="yh-top-right">
     <% if (version) { %><span class="yh-ver" id="version">v<%= version %></span><% } %>
     <details class="yh-menu" id="user-menu">
