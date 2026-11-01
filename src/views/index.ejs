@@ -1,94 +1,102 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<base href="<%= base %>">
-<title>收件箱</title>
-<link rel="stylesheet" href="static/app.css?v=<%= version %>">
-<script src="static/app.js?v=<%= version %>" defer></script>
-</head>
-<body>
-<main class="page">
-  <header class="top">
-    <h1>收件箱</h1>
-    <% if (version) { %><span class="ver" id="version">v<%= version %></span><% } %>
-  </header>
+<%- include('layout/head') %>
+<main class="yh-app yh-app--wide" id="home">
+  <div class="yh-page-head head-bar">
+    <div>
+      <h1>我的待办</h1>
+      <p class="yh-sub">一句话记下来，今天该做的、谁在做，一屏看清。</p>
+    </div>
+    <% if (!problem) { %>
+      <div class="head-actions">
+        <button class="yh-btn yh-btn--text head-idle" id="select-btn" type="button">选择</button>
+        <a class="yh-btn yh-btn--text head-idle" id="import-btn" href="import">导入</a>
+        <details class="pop" id="select-all">
+          <summary class="yh-btn yh-btn--text">全选 <span class="caret" aria-hidden="true">›</span></summary>
+          <div class="pop-list">
+            <button id="batch-screen" type="button">全选本屏</button>
+            <button id="batch-all" type="button">全部选中</button>
+          </div>
+        </details>
+      </div>
+    <% } %>
+  </div>
 
   <% if (problem) { %>
-    <p class="empty"><%= problem %></p>
+    <div class="yh-error">
+      <p class="empty"><%= problem %></p>
+      <button class="yh-btn yh-btn--ghost" type="button" data-reload>重试</button>
+    </div>
   <% } else { %>
-    <nav class="tabs" aria-label="视图">
-      <% for (const [key, label] of tabs) { %>
-        <a class="tab<%= key === view ? ' on' : '' %>" href="?view=<%= key %>" data-view="<%= key %>"<%- key === view ? ' aria-current="page"' : '' %>><%= label %></a>
-      <% } %>
-    </nav>
-
-    <form class="quick" id="quick" autocomplete="off">
-      <input id="quick-input" name="text" type="text" maxlength="<%= inputMax %>" placeholder="一句话记下要做的事" aria-label="一句话记下要做的事" enterkeyhint="done">
-      <button class="btn primary" id="quick-btn" type="submit">记下</button>
-    </form>
-
-    <section id="list"><%- include('partials/list') %></section>
+    <div class="split split--rail">
+      <section>
+        <nav class="tabs" aria-label="视图">
+          <% for (const [key, label] of tabs) { %>
+            <a class="tab<%= key === view ? ' on' : '' %>" href="?view=<%= key %>" data-view="<%= key %>"<%- key === view ? ' aria-current="page"' : '' %>><%= label %></a>
+          <% } %>
+        </nav>
+        <form class="quick" id="quick" autocomplete="off">
+          <input class="yh-input" id="quick-input" name="text" type="text" maxlength="<%= inputMax %>" placeholder="一句话记下要做的事" aria-label="一句话记下要做的事" enterkeyhint="done">
+          <button class="yh-btn" id="quick-btn" type="submit">记下</button>
+        </form>
+        <section id="list" data-view="<%= view %>"><%- include('partials/list') %></section>
+      </section>
+      <aside class="side" id="rail" aria-label="今日概览"><%- include('partials/rail') %></aside>
+    </div>
   <% } %>
 </main>
 
-<dialog class="sheet" id="sheet" aria-labelledby="sheet-title">
-  <form class="sheet-box" id="task-form" novalidate>
-    <header class="sheet-head">
-      <h2 id="sheet-title">确认待办</h2>
-      <button class="icon" type="button" data-close aria-label="关闭">×</button>
-    </header>
-    <div class="sheet-body">
-      <p class="note-line" id="sheet-hint" hidden></p>
-      <label class="field"><span>标题</span>
-        <textarea id="f-title" rows="2" maxlength="500" required></textarea>
-      </label>
-      <label class="field"><span>截止日期</span>
-        <input id="f-due" type="date">
-      </label>
-      <fieldset class="field">
-        <legend>优先级</legend>
-        <div class="seg">
-          <label><input type="radio" name="priority" value="0"><span>无</span></label>
-          <label><input type="radio" name="priority" value="1"><span>低</span></label>
-          <label><input type="radio" name="priority" value="2"><span>中</span></label>
-          <label><input type="radio" name="priority" value="3"><span>高</span></label>
-        </div>
-      </fieldset>
-      <div class="field">
-        <span id="assign-label">指派给</span>
-        <button class="pick" id="f-assign" type="button" aria-labelledby="assign-label f-assign-name"><span id="f-assign-name">不指派</span><span aria-hidden="true">›</span></button>
-        <p class="note-line assign-hint" id="f-assign-hint" hidden></p>
-        <div class="cands" id="f-assign-cands" hidden></div>
-      </div>
-      <label class="field"><span>备注</span>
-        <textarea id="f-note" rows="2" maxlength="5000"></textarea>
-      </label>
+<% if (!problem) { %>
+  <div class="batch-bar" id="batch-bar" role="toolbar" aria-label="批量操作" hidden>
+    <div class="batch-top">
+      <span class="batch-count" id="batch-count">已选 0 条</span>
+      <button class="yh-btn yh-btn--text" id="batch-cancel" type="button">取消</button>
     </div>
-    <footer class="sheet-foot">
-      <button class="btn primary wide" id="sheet-save" type="submit">保存</button>
-    </footer>
-  </form>
-</dialog>
-
-<dialog class="sheet" id="picker" aria-labelledby="picker-title">
-  <div class="sheet-box">
-    <header class="sheet-head">
-      <h2 id="picker-title">指派给</h2>
-      <button class="icon" type="button" data-close aria-label="关闭">×</button>
-    </header>
-    <div class="sheet-body">
-      <input id="picker-q" type="search" placeholder="搜姓名或部门" aria-label="搜姓名或部门">
-      <p class="note-line" id="picker-msg" hidden></p>
-      <ul class="people" id="picker-list"></ul>
+    <div class="batch-actions" id="batch-actions">
+      <button class="yh-btn yh-btn--ghost" data-batch="reschedule" type="button">改期</button>
+      <button class="yh-btn yh-btn--ghost" data-batch="assign" type="button">指派</button>
+      <button class="yh-btn yh-btn--ghost" data-batch="done" type="button">完成</button>
+      <button class="yh-btn yh-btn--ghost" data-batch="more" type="button">更多 <span class="caret" aria-hidden="true">›</span></button>
     </div>
-    <footer class="sheet-foot">
-      <button class="btn wide" id="picker-none" type="button">不指派</button>
-    </footer>
+    <div class="batch-actions batch-actions--one" id="batch-restore" hidden>
+      <button class="yh-btn yh-btn--ghost" data-batch="restore" type="button">恢复</button>
+    </div>
   </div>
-</dialog>
 
-<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-</body>
-</html>
+  <dialog class="yh-sheet yh-sheet--auto" id="reschedule" aria-labelledby="reschedule-title">
+    <div class="yh-sheet-box">
+      <header class="yh-sheet-head">
+        <h2 id="reschedule-title">改期</h2>
+        <button class="yh-btn yh-btn--text" type="button" data-close aria-label="关闭">×</button>
+      </header>
+      <div class="yh-sheet-body">
+        <div class="presets">
+          <button class="yh-btn yh-btn--ghost" type="button" data-preset="today">今天</button>
+          <button class="yh-btn yh-btn--ghost" type="button" data-preset="tomorrow">明天</button>
+          <button class="yh-btn yh-btn--ghost" type="button" data-preset="next_week">下周一</button>
+        </div>
+        <label class="yh-field custom-due"><span class="yh-label">自定义日期</span>
+          <input id="custom-due" type="date">
+        </label>
+      </div>
+      <footer class="yh-sheet-foot">
+        <button class="yh-btn" id="custom-due-ok" type="button">改到这天</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="yh-sheet yh-sheet--auto" id="more-sheet" aria-labelledby="more-title">
+    <div class="yh-sheet-box">
+      <header class="yh-sheet-head">
+        <h2 id="more-title">更多操作</h2>
+        <button class="yh-btn yh-btn--text" type="button" data-close aria-label="关闭">×</button>
+      </header>
+      <div class="yh-sheet-body more-list">
+        <button class="more-item" data-batch="archive" type="button"><span>归档</span><span class="yh-hint">从列表和统计里移除，可在「已完成 → 已归档」找回</span></button>
+        <button class="more-item more-item--danger" data-batch="delete" type="button"><span>删除</span></button>
+      </div>
+    </div>
+  </dialog>
+
+  <%- include('partials/form') %>
+  <%- include('partials/picker') %>
+<% } %>
+<%- include('layout/foot') %>

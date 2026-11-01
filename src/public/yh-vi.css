@@ -1,0 +1,214 @@
+/* 由 scripts/sync-vi.mjs 从 yihu-one 平台同步，勿手改 */
+:root {
+  --yh-primary: #1c1917;
+  --yh-primary-rgb: 28, 25, 23;
+  --yh-primary-dark: #454241;
+  --yh-primary-deep: #1c1917;
+  --yh-primary-light: #6b6a68;
+  --yh-primary-soft: #e8e8e8;
+  --yh-on-primary: #faf9f7;
+  --yh-highlight: #d2521e;
+  --yh-highlight-rgb: 210, 82, 30;
+  --yh-highlight-soft: #fbeee9;
+  --yh-accent: #d2521e;
+  --yh-accent-light: #e28f6d;
+  --yh-accent-deep: #1c1917;
+  --yh-glow: #77361b;
+  --yh-glow-rgb: 119, 54, 27;
+  --yh-gradient: var(--yh-primary);
+  --yh-hero: #1c1917;
+  --yh-hero-ai: #1c1917;
+  --yh-glow-shadow: 0 4px 14px rgba(28, 25, 23, .18);
+  --yh-ai: #b9481a;
+  --yh-ai-soft: #fcf3ef;
+  --yh-bg: #faf9f7;
+  --yh-card: #ffffff;
+  --yh-card-rgb: 255, 255, 255;
+  --yh-sidebar: #faf9f7;
+  --yh-hover: #f0efed;
+  --yh-fill: #f9f9f9;
+  --yh-fill-2: #f4f4f3;
+  --yh-fill-3: #eae9e7;
+  --yh-border: #eae7e2;
+  --yh-border-soft: #f1efec;
+  --yh-border-strong: #dad7d2;
+  --yh-text: #1c1917;
+  --yh-text-2: #5c574f;
+  --yh-text-3: #8f8a82;
+  --yh-danger: #c2362b;
+  --yh-success: #2e7d4f;
+  --yh-warning: #b3450f;
+  --yh-radius: 12px;
+  --yh-radius-sm: 8px;
+  --yh-shadow: none;
+  --yh-shadow-lg: 0 8px 24px rgba(28, 25, 23, 0.08);
+  --yh-font: 'Manrope Variable', 'Manrope', 'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
+  --yh-font-num: 'Manrope Variable', 'Manrope', system-ui, sans-serif;
+  --yh-nav-active-bg: #1c1917;
+  --yh-nav-active-color: #faf9f7;
+  --yh-nav-tick: #d2521e;
+  --el-color-primary: #1c1917;
+  --el-color-success: #2e7d4f;
+  --el-color-danger: #c2362b;
+  --yh-sidebar-w: 216px;
+  --yh-header-h: 56px;
+  --yh-tabbar-h: 58px;
+}
+
+/* === 组件（本文件手写，同步时保留）=== */
+/* 官方应用共用。只用上面的令牌，不写死颜色；不用渐变、投影。强调色 --yh-highlight 全应用只用在「进行中」这一处。
+   可点元素一律 ≥44px，375px 宽不横向滚动 */
+*, *::before, *::after { box-sizing: border-box; }
+html { color-scheme: light; -webkit-text-size-adjust: 100%; }
+html:has(dialog[open]) { overflow: hidden; }
+body { margin: 0; background: var(--yh-bg); color: var(--yh-text); font: 14px/1.6 var(--yh-font); }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+h1, h2, h3, p { margin: 0; }
+
+/* 页面容器 */
+.yh-app {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px 16px calc(32px + env(safe-area-inset-bottom));
+}
+.yh-app--wide { max-width: 1200px; }
+
+/* 应用顶栏 */
+.yh-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: var(--yh-header-h);
+  padding: 0 16px;
+  background: var(--yh-card);
+  border-bottom: 1px solid var(--yh-border);
+}
+.yh-top-brand { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; min-width: 44px; color: var(--yh-text); font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.yh-top-right { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.yh-ver { color: var(--yh-text-3); font-family: var(--yh-font-num); font-size: 12px; }
+.yh-menu { position: relative; }
+.yh-menu > summary { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; cursor: pointer; list-style: none; }
+.yh-menu > summary::-webkit-details-marker { display: none; }
+.yh-avatar { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--yh-fill-3); border-radius: 999px; color: var(--yh-text-2); font-size: 13px; font-weight: 600; }
+.yh-menu-list { position: absolute; top: 100%; right: 0; z-index: 30; display: flex; flex-direction: column; min-width: 160px; padding: 4px; background: var(--yh-card); border: 1px solid var(--yh-border); border-radius: var(--yh-radius-sm); }
+.yh-menu-list a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: var(--yh-radius-sm); color: var(--yh-text); text-decoration: none; }
+.yh-menu-list a:hover { background: var(--yh-hover); }
+.yh-menu-ver { display: none; padding: 8px 12px; color: var(--yh-text-3); font-size: 12px; }
+
+/* 标题 + 一行说明 */
+.yh-page-head { margin-bottom: 16px; }
+.yh-page-head h1 { font-size: 20px; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.yh-sub { margin-top: 2px; color: var(--yh-text-3); font-size: 14px; overflow-wrap: anywhere; }
+
+/* 卡片 */
+.yh-card { padding: 20px; background: var(--yh-card); border: 1px solid var(--yh-border); border-radius: var(--yh-radius); }
+.yh-card.yh-plain { padding: 0; background: none; border: 0; }
+
+/* 列表行 */
+.yh-row { display: block; min-height: 44px; padding: 12px; border-bottom: 1px solid var(--yh-border-soft); color: inherit; text-decoration: none; }
+a.yh-row:hover { background: var(--yh-hover); }
+.yh-row-main { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.yh-row-title { min-width: 0; font-weight: 500; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.yh-row-status { flex: none; color: var(--yh-text-3); font-size: 13px; }
+.yh-row-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; margin-top: 2px; color: var(--yh-text-3); font-size: 13px; }
+.yh-row-sub > * { min-width: 0; overflow-wrap: anywhere; }
+
+/* 空态：一句话 + 最多一个动作 */
+.yh-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px 16px; color: var(--yh-text-3); text-align: center; }
+
+/* 加载骨架 */
+.yh-skeleton { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+.yh-skeleton::before, .yh-skeleton::after, .yh-skeleton > i { content: ""; display: block; height: 12px; background: var(--yh-fill-3); border-radius: var(--yh-radius-sm); }
+.yh-skeleton > i { width: 80%; }
+.yh-skeleton::after { width: 55%; }
+
+/* 错误态：一句话原因 + 重试 */
+.yh-error { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px 16px; color: var(--yh-text-2); text-align: center; }
+
+/* 提示 */
+.yh-toast { position: fixed; right: 24px; bottom: 24px; z-index: 40; max-width: min(360px, calc(100vw - 32px)); padding: 10px 14px; background: var(--yh-primary); border-radius: var(--yh-radius-sm); color: var(--yh-on-primary); font-size: 14px; }
+
+/* 表单 */
+.yh-field { display: block; min-width: 0; margin: 0 0 12px; padding: 0; border: 0; }
+.yh-field > .yh-label { display: block; margin-bottom: 4px; padding: 0; color: var(--yh-text-2); font-size: 13px; }
+.yh-field input, .yh-field textarea, .yh-field select, .yh-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: var(--yh-card);
+  border: 1px solid var(--yh-border-strong);
+  border-radius: var(--yh-radius-sm);
+  outline: none;
+  appearance: none; /* iOS 的日期框不加这个会撑破容器 */
+}
+.yh-field textarea, textarea.yh-input { resize: vertical; }
+/* 下拉：原生箭头在 WebKit 下不认 min-height，自己画一个 */
+.yh-select { position: relative; display: block; }
+.yh-select::after { content: "›"; position: absolute; top: 50%; right: 14px; color: var(--yh-text-3); font-size: 16px; line-height: 1; pointer-events: none; transform: translateY(-50%) rotate(90deg); }
+.yh-select select { padding-right: 32px; }
+.yh-field input:focus, .yh-field textarea:focus, .yh-field select:focus, .yh-input:focus { border-color: var(--yh-primary); }
+.yh-field-error { margin-top: 4px; color: var(--yh-danger); font-size: 13px; }
+.yh-hint { margin-top: 4px; color: var(--yh-text-3); font-size: 13px; }
+
+/* 按钮 */
+.yh-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 16px; background: var(--yh-primary); border: 1px solid var(--yh-primary); border-radius: var(--yh-radius-sm); color: var(--yh-on-primary); font-weight: 500; text-decoration: none; white-space: nowrap; }
+.yh-btn:hover { background: var(--yh-primary-dark); border-color: var(--yh-primary-dark); }
+.yh-btn--ghost { background: var(--yh-card); border-color: var(--yh-border-strong); color: var(--yh-text); }
+.yh-btn--ghost:hover { background: var(--yh-hover); border-color: var(--yh-border-strong); }
+.yh-btn--text { padding: 0 8px; background: none; border-color: transparent; color: var(--yh-text-2); }
+.yh-btn--text:hover { background: var(--yh-hover); border-color: transparent; }
+.yh-btn--danger { background: var(--yh-danger); border-color: var(--yh-danger); color: var(--yh-on-primary); }
+.yh-btn--danger:hover { background: var(--yh-danger); border-color: var(--yh-danger); }
+.yh-btn--ghost.yh-btn--danger, .yh-btn--ghost.yh-btn--danger:hover { background: var(--yh-card); border-color: var(--yh-border-strong); color: var(--yh-danger); }
+.yh-btn:disabled { opacity: .55; cursor: default; }
+
+/* 标签 */
+.yh-tag { display: inline-flex; align-items: center; max-width: 100%; height: 22px; padding: 0 8px; background: var(--yh-fill-2); border-radius: 999px; color: var(--yh-text-2); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 弹层：手机是占满可视区的底部 sheet，主按钮固定在底部；高度跟着 visualViewport 走，键盘弹起时不被顶出去。桌面是居中 modal */
+.yh-sheet { position: fixed; inset: 0; width: 480px; max-width: calc(100vw - 32px); height: fit-content; max-height: min(80vh, 680px); margin: auto; padding: 0; background: var(--yh-card); border: 1px solid var(--yh-border); border-radius: var(--yh-radius); color: inherit; }
+.yh-sheet::backdrop { background: rgba(var(--yh-primary-rgb), .32); }
+.yh-sheet-box { display: flex; flex-direction: column; max-height: min(80vh, 680px); }
+.yh-sheet-head { flex: none; display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 4px 16px; border-bottom: 1px solid var(--yh-border); }
+.yh-sheet-head h2 { font-size: 16px; font-weight: 600; }
+.yh-sheet-body { flex: 1; min-height: 0; overflow-y: auto; padding: 16px; }
+.yh-sheet-foot { flex: none; display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--yh-border); background: var(--yh-card); }
+
+/* 数字块 */
+.yh-stat { display: flex; flex-direction: column; min-width: 0; }
+.yh-stat b { font-family: var(--yh-font-num); font-size: 22px; font-weight: 600; line-height: 1.3; }
+.yh-stat span { color: var(--yh-text-3); font-size: 12px; }
+
+@media (min-width: 641px) {
+  .yh-app { padding-left: 24px; padding-right: 24px; }
+  .yh-top { padding: 0 24px; }
+}
+
+@media (pointer: coarse) {
+  a, button, select, summary, input, textarea { min-height: 44px; }
+  .yh-field input, .yh-field textarea, .yh-field select, .yh-input { font-size: 16px; } /* 低于 16px 时 iOS 聚焦会自动放大页面 */
+}
+
+@media (max-width: 640px) {
+  .yh-app { padding: 12px 12px calc(24px + env(safe-area-inset-bottom)); }
+  .yh-top { padding: 0 12px; padding-top: env(safe-area-inset-top); height: calc(var(--yh-header-h) + env(safe-area-inset-top)); }
+  .yh-card { padding: 14px; }
+  .yh-top-right .yh-ver { display: none; }
+  .yh-menu-ver { display: block; border-bottom: 1px solid var(--yh-border-soft); }
+  .yh-toast { right: auto; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: max-content; }
+  .yh-sheet { inset: auto 0 0 0; width: 100%; max-width: 100%; height: var(--vvh, 100dvh); max-height: var(--vvh, 100dvh); border: 0; border-radius: var(--yh-radius) var(--yh-radius) 0 0; animation: yh-sheet-up .2s ease-out; }
+  .yh-sheet-box { height: 100%; max-height: none; }
+  .yh-sheet-foot { padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+  .yh-sheet-foot .yh-btn { flex: 1; }
+  .yh-sheet--auto { height: auto; }
+  .yh-sheet--auto .yh-sheet-box { height: auto; }
+}
+
+@keyframes yh-sheet-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }

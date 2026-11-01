@@ -1,29 +1,42 @@
-<% const EMPTY = { today: '今天没有到期的事。', week: '本周没有到期的事。', open: '没有未完成的事。', done: '还没有完成的事。' } %>
+<% const EMPTY = { today: '今天没有要做的 —— 上面记一条，或导入会议待办', week: '本周没有到期的事。', open: '没有未完成的事。', done: '还没有完成的事。', archived: '没有归档的事。' } %>
+<% if (report) { %><%- include('report') %><% } %>
 <% if (!tasks.length) { %>
-  <div class="empty">
+  <div class="yh-empty empty">
     <p><%= EMPTY[view] %></p>
-    <button class="example" type="button" data-example="明天下午三点前把合同发给张三，重要">试试：明天下午三点前把合同发给张三，重要</button>
+    <% if (view !== 'archived' && view !== 'done') { %><a class="more" href="import">导入</a><% } %>
   </div>
 <% } else { %>
-  <ul class="list">
+  <% if (report) { %><h2 class="section-title list-head">本周到期</h2><% } %>
+  <ul class="list" data-total="<%= total %>">
     <% for (const t of tasks) { %>
-      <li class="task<%= t.status === 'done' ? ' done' : '' %>" data-id="<%= t.id %>">
-        <label class="check">
-          <input type="checkbox" aria-label="完成：<%= t.title %>"<%= t.status === 'done' ? ' checked' : '' %>>
-          <span class="box"></span>
-        </label>
-        <button class="row" type="button" data-open>
-          <span class="title" title="<%= t.title %>"><% if (t.priority > 0) { %><i class="dot p<%= t.priority %>" title="优先级 <%= ['', '低', '中', '高'][t.priority] %>"></i><% } %><%= t.title %></span>
-          <% if (t.due || t.assignee || t.from || t.status === 'done') { %>
+      <% const urgent = t.priority === 3 && t.status !== 'done' %>
+      <% const hasMeta = t.due || t.assignee || t.from || t.status === 'done' || t.tags.length || t.pending.length %>
+      <li class="task<%= t.status === 'done' ? ' done' : '' %><%= t.archived ? ' archived' : '' %>" data-id="<%= t.id %>">
+        <span class="sel" aria-hidden="true"></span>
+        <% if (!t.archived) { %>
+          <label class="check">
+            <input type="checkbox" aria-label="完成：<%= t.title %>"<%= t.status === 'done' ? ' checked' : '' %>>
+            <span class="box"></span>
+          </label>
+        <% } %>
+        <button class="row" type="button"<%= t.archived ? '' : ' data-open' %>>
+          <span class="title" title="<%= t.title %>"><%= t.title %></span>
+          <% if (hasMeta || urgent) { %>
             <span class="meta">
               <% if (t.due) { %><span class="<%= t.overdue ? 'late' : '' %>"><%= t.due %></span><% } %>
               <% if (t.status === 'done' && t.done_label) { %><span>完成于 <%= t.done_label %></span><% } %>
-              <% if (t.assignee) { %><span>指派给 <%= t.assignee %></span><% } %>
+              <% if (t.assignee) { %><span>指派 <%= t.assignee %></span><% } %>
               <% if (t.from) { %><span>来自 <%= t.from %></span><% } %>
+              <% for (const who of t.pending) { %><span>指派 <%= who %>（待确认）</span><% } %>
+              <% for (const tag of t.tags) { %><span class="yh-tag"><%= tag %></span><% } %>
+              <% if (urgent) { %><span class="urgent"><%= hasMeta ? '· 急' : '急' %></span><% } %>
             </span>
           <% } %>
         </button>
       </li>
     <% } %>
   </ul>
+  <% if (total > tasks.length) { %><p class="note-line center" id="list-more">只显示前 <%= tasks.length %> 条，共 <%= total %> 条。要处理全部，进「选择」，在「全选」里点「全部选中」。</p><% } %>
 <% } %>
+<% if (view === 'done') { %><p class="center"><a class="more" href="?view=archived" data-view="archived">查看已归档的事</a></p><% } %>
+<% if (view === 'archived') { %><p class="center"><a class="more" href="?view=done" data-view="done">‹ 回到已完成</a></p><% } %>

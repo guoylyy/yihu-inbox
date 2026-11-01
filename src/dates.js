@@ -15,10 +15,30 @@ export const weekdayOf = (d) => new Date(utc(d)).getUTCDay()
 /** 周一到周日算一周，返回 d 所在周的周日 */
 export const endOfWeek = (d) => addDays(d, (7 - weekdayOf(d)) % 7)
 
+/** 周一 */
+export const startOfWeek = (d) => addDays(d, -((weekdayOf(d) + 6) % 7))
+
 function localParts(now, tz) {
   const parts = {}
   for (const p of new Intl.DateTimeFormat('en-CA', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(now)) parts[p.type] = p.value
   return parts
+}
+
+function offsetMs(ms, tz) {
+  const p = localParts(new Date(ms), tz)
+  return Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day), Number(p.hour), Number(p.minute)) - Math.floor(ms / 60_000) * 60_000
+}
+
+/** 当地这一天 0 点对应的 UTC 时刻。查 created_at、done_at 这类 UTC 列时用 */
+export function startOfDayUtc(d, tz = tzName()) {
+  const wall = utc(d)
+  return new Date(wall - offsetMs(wall - offsetMs(wall, tz), tz))
+}
+
+/** 周一 0 点到下周一 0 点（当地），左闭右开 */
+export function weekRange(today, tz = tzName()) {
+  const start = startOfWeek(today)
+  return { start, end: addDays(start, 6), from: startOfDayUtc(start, tz), to: startOfDayUtc(addDays(start, 7), tz) }
 }
 
 export function todayIn(tz = tzName(), now = new Date()) {
@@ -76,4 +96,30 @@ export function parseDueWord(input, today) {
   if (week[1]) return inWeek
   // 没说「下」：这周已过就是下一周的这天
   return inWeek < today ? addDays(inWeek, 7) : inWeek
+}
+
+/** 只写了月日：取离今天最近的那一年，11 月粘贴的 01-09 是明年，1 月粘贴的 12-30 是去年 */
+function nearestYear(month, day, today) {
+  const year = Number(today.slice(0, 4))
+  const dates = [year - 1, year, year + 1]
+    .map((y) => `${y}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`)
+    .filter(isValidDate)
+  if (!dates.length) return null
+  return dates.reduce((best, d) => (Math.abs(daysBetween(today, d)) < Math.abs(daysBetween(today, best)) ? d : best))
+}
+
+/**
+ * 导入时认日期：parseDueWord 之外再认 2026/11/02、11-02（会议复制出来的就是这种）、11/2、11月2日。
+ * 认不出返回 null，那段字留在标题里
+ */
+export function parseImportDate(input, today) {
+  const s = String(input ?? '').trim()
+  const full = /^(\d{4})[/.](\d{1,2})[/.](\d{1,2})$/.exec(s)
+  if (full) {
+    const d = `${full[1]}-${full[2].padStart(2, '0')}-${full[3].padStart(2, '0')}`
+    return isValidDate(d) ? d : null
+  }
+  const md = /^(\d{2})-(\d{2})$/.exec(s) || /^(\d{1,2})\/(\d{1,2})$/.exec(s) || /^(\d{1,2})月(\d{1,2})[日号]?$/.exec(s)
+  if (md) return nearestYear(Number(md[1]), Number(md[2]), today)
+  return parseDueWord(s, today)
 }

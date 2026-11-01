@@ -1,0 +1,38 @@
+<dialog class="yh-sheet" id="sheet" aria-labelledby="sheet-title">
+  <form class="yh-sheet-box" id="task-form" novalidate>
+    <header class="yh-sheet-head">
+      <h2 id="sheet-title">确认待办</h2>
+      <button class="yh-btn yh-btn--text" type="button" data-close aria-label="关闭">×</button>
+    </header>
+    <div class="yh-sheet-body">
+      <p class="note-line" id="sheet-hint" hidden></p>
+      <label class="yh-field"><span class="yh-label">标题</span>
+        <textarea id="f-title" rows="2" maxlength="500" required></textarea>
+      </label>
+      <label class="yh-field"><span class="yh-label">截止日期</span>
+        <input id="f-due" type="date">
+      </label>
+      <fieldset class="yh-field">
+        <legend class="yh-label">优先级</legend>
+        <div class="seg">
+          <label><input type="radio" name="priority" value="0"><span>无</span></label>
+          <label><input type="radio" name="priority" value="1"><span>低</span></label>
+          <label><input type="radio" name="priority" value="2"><span>中</span></label>
+          <label><input type="radio" name="priority" value="3"><span>高</span></label>
+        </div>
+      </fieldset>
+      <div class="yh-field">
+        <span class="yh-label" id="assign-label">指派给</span>
+        <button class="pick" id="f-assign" type="button" aria-labelledby="assign-label f-assign-name"><span class="pick-text" id="f-assign-name">不指派</span><span aria-hidden="true">›</span></button>
+        <p class="note-line assign-hint" id="f-assign-hint" hidden></p>
+        <div class="cands" id="f-assign-cands" hidden></div>
+      </div>
+      <label class="yh-field"><span class="yh-label">备注</span>
+        <textarea id="f-note" rows="2" maxlength="5000"></textarea>
+      </label>
+    </div>
+    <footer class="yh-sheet-foot">
+      <button class="yh-btn" id="sheet-save" type="submit">保存</button>
+    </footer>
+  </form>
+</dialog>

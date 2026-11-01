@@ -38,7 +38,7 @@ const ids = async (who, view) => (await who.get(`/api/tasks?view=${view}`)).json
 test('/health 免登录，返回规定格式', async () => {
   const r = await fetch(`${h.base}/health`)
   assert.equal(r.status, 200)
-  assert.deepEqual(await r.json(), { status: 'ok', version: '0.1.2' })
+  assert.deepEqual(await r.json(), { status: 'ok', version: '0.2.1' })
 })
 
 test('版本号三处一致：清单、package.json、页面', async () => {
@@ -179,8 +179,9 @@ test('本周视图截到本周日，全部视图含无日期，已完成单独�
 
 test('列表空态：一句说明 + 一个示例', async () => {
   const { text } = await alice.get('/api/list.html?view=today')
-  assert.match(text, /今天没有到期的事/)
-  assert.match(text, /data-example=/)
+  assert.match(text, /今天没有要做的 —— 上面记一条，或导入会议待办/)
+  assert.match(text, /<a class="more" href="import">导入<\/a>/)
+  assert.ok(!text.includes('data-example'))
 })
 
 test('完成和重开：done_at 跟着变', async () => {
@@ -387,8 +388,20 @@ test('平台用户接口挂了：选人给人话，指派 503，列表仍能打�
   assert.equal((await platform.alice.put(`/api/tasks/${t.id}/assignee`, { assignee_id: CAROL })).status, 503)
   const list = await platform.alice.get('/api/list.html?view=today')
   assert.equal(list.status, 200)
-  assert.match(list.text, /指派给 用户 12/)
+  assert.match(list.text, /指派 用户 12/)
   await platform.h.close()
+})
+
+test('列表第二行：高优先级在末尾写「· 急」，普通的不写，没有圆点', async () => {
+  await create(alice, { title: '高优有日期', due_date: today, priority: 3 })
+  await create(alice, { title: '普通', due_date: today, priority: 2 })
+  await create(alice, { title: '高优没别的', priority: 3 })
+  const { text } = await alice.get('/api/list.html?view=open')
+  const row = (title) => text.slice(text.lastIndexOf('<li', text.indexOf(`>${title}<`)), text.indexOf('</li>', text.indexOf(`>${title}<`)))
+  assert.match(row('高优有日期'), /<span class="urgent">· 急<\/span>\s*<\/span>/)
+  assert.ok(!row('普通').includes('urgent'))
+  assert.match(row('高优没别的'), /<span class="urgent">急<\/span>/)
+  assert.ok(!text.includes('class="dot'))
 })
 
 async function startDown() {

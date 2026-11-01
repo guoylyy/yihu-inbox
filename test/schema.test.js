@@ -41,7 +41,10 @@ test('ensureColumn：缺列才加，再跑一次不动', async () => {
   await pool.query('DROP TABLE inbox_col_test')
 })
 
-test('新增列清单当前为空（v0.1 是初始结构）', () => assert.deepEqual(ADDED_COLUMNS, []))
+test('新增列都可空或有默认值（回滚不回库）', () => {
+  assert.deepEqual(ADDED_COLUMNS.map((c) => c.column), ['archived_at'])
+  for (const c of ADDED_COLUMNS) assert.match(c.ddl, /NULL|DEFAULT/)
+})
 
 test('每日摘要：按负责人分组，汇总今天到期和逾期', async () => {
   const today = todayIn()

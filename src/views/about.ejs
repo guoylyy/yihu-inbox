@@ -1,0 +1,21 @@
+<%- include('layout/head') %>
+<main class="yh-app">
+  <a class="back" href="./">‹ 收件箱</a>
+  <div class="yh-page-head">
+    <h1>关于</h1>
+    <p class="yh-sub">报问题时把这一页截图发给管理员。</p>
+  </div>
+  <section class="yh-card">
+    <dl class="info" id="about-info">
+      <div><dt>版本号</dt><dd id="a-version">v<%= info.version %></dd></div>
+      <div><dt>构建时间</dt><dd id="a-build"><%= info.build_time %></dd></div>
+      <div><dt>运行模式</dt><dd id="a-mode"><%= info.mode %></dd></div>
+      <div><dt>数据目录</dt><dd id="a-data"><%= info.data_dir %></dd></div>
+      <div><dt>数据库版本</dt><dd id="a-db"><%= info.database %></dd></div>
+      <div><dt>AI 模型</dt><dd id="a-model"><%= info.model %></dd></div>
+      <div><dt>Node 版本</dt><dd id="a-node"><%= info.node %></dd></div>
+      <div><dt>依赖数</dt><dd id="a-deps"><%= info.dependencies %> 个</dd></div>
+    </dl>
+  </section>
+</main>
+<%- include('layout/foot') %>

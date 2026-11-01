@@ -1,13 +1,14 @@
 {
   "name": "yihu-inbox",
-  "version": "0.1.2",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "engines": { "node": ">=20" },
   "scripts": {
     "start": "node src/server.js",
     "test": "node scripts/run-tests.mjs",
-    "e2e": "node e2e/run.mjs"
+    "e2e": "node e2e/run.mjs",
+    "sync-vi": "node scripts/sync-vi.mjs"
   },
   "dependencies": {
     "ejs": "^3.1.10",

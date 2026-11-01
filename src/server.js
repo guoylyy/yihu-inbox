@@ -3,6 +3,8 @@ import { Workspace } from './yh-one.mjs'
 import { createApp } from './app.js'
 import { createPool, ensureSchema } from './db.js'
 import { createTasks } from './tasks.js'
+import { createSettings } from './settings.js'
+import { createPlatformUsers } from './platform-users.js'
 import { startDigest } from './digest.js'
 import { VERSION } from './version.js'
 
@@ -27,6 +29,8 @@ async function prepare() {
     console.log('[inbox] 数据库已就绪')
     startDigest({
       tasks: createTasks({ pool }),
+      settings: createSettings({ pool }),
+      users: createPlatformUsers({ clientId: ws.clientId, clientSecret: ws.clientSecret, apiUrl: ws.apiUrl }),
       notify: (body) => ws.call('POST', '/api/open/notify', { body, headers: { Authorization: ws.basic() } }),
       url: ws.appUrl ? `${ws.appUrl}/` : ''
     })

@@ -1,0 +1,40 @@
+<% const rateTip = `完成率 = 本周完成 ÷（本周完成 + 截止在本周内还没做完的 ${report.open_due} 条）` %>
+<section class="yh-card report" id="report">
+  <div class="report-head">
+    <div>
+      <h2 class="report-title">本周周报</h2>
+      <p class="yh-sub"><%= report.label %></p>
+    </div>
+    <button class="yh-btn yh-btn--ghost" id="report-copy" type="button" data-copy="<%= report.markdown %>">复制为文本</button>
+  </div>
+  <div class="stats stats--4">
+    <div class="yh-stat"><b id="r-added"><%= report.added %></b><span>本周新增</span></div>
+    <div class="yh-stat"><b id="r-done"><%= report.done %></b><span>本周完成</span></div>
+    <div class="yh-stat"><b id="r-rate"><%= report.rate === null ? '—' : `${report.rate}%` %></b><span>完成率 <button class="tip" type="button" data-tip title="<%= rateTip %>" aria-label="<%= rateTip %>"><i>?</i></button></span></div>
+    <div class="yh-stat"><b id="r-overdue"><%= report.overdue_total %></b><span>逾期</span></div>
+  </div>
+
+  <% if (report.overdue_total) { %>
+    <h3 class="section-title">逾期清单</h3>
+    <ul class="bare report-list" id="r-overdue-list">
+      <% for (const t of overdueBrief.lines) { %><li><span class="report-text"><span class="late"><%= t.due %></span> · <%= t.title %></span></li><% } %>
+    </ul>
+    <% if (overdueBrief.more) { %><p class="yh-hint">还有 <%= overdueBrief.more %> 条</p><% } %>
+  <% } %>
+
+  <% if (report.people.length) { %>
+    <h3 class="section-title">按人分布（未完成）</h3>
+    <ul class="bare report-list" id="r-people">
+      <% for (const p of report.people) { %><li><span class="report-text"><%= p.name %></span><span class="report-who"><%= p.count %> 条</span></li><% } %>
+    </ul>
+    <p class="yh-hint">只统计你看得到的事：你创建的和指派给你的。</p>
+  <% } %>
+
+  <% if (report.stale_total) { %>
+    <h3 class="section-title">连续 3 天没动</h3>
+    <ul class="bare report-list" id="r-stale">
+      <% for (const t of report.stale) { %><li><span class="report-text"><%= t.title %></span><% if (t.owner_label) { %><span class="report-who"><%= t.owner_label %></span><% } %></li><% } %>
+    </ul>
+    <% if (report.stale_total > report.stale.length) { %><p class="yh-hint">还有 <%= report.stale_total - report.stale.length %> 条</p><% } %>
+  <% } %>
+</section>

@@ -1,0 +1,50 @@
+<%- include('layout/head') %>
+<main class="yh-app">
+  <a class="back" href="./">‹ 收件箱</a>
+  <div class="yh-page-head">
+    <h1>导入</h1>
+    <p class="yh-sub">把别的系统里的事搬进来。先预览，勾过才入库。</p>
+  </div>
+
+  <div id="stage-input">
+    <div class="import-grid">
+      <section class="yh-card">
+        <h2 class="section-title">粘贴文字</h2>
+        <label class="yh-field"><span class="sr-only">要导入的内容</span>
+          <textarea id="paste" rows="8" placeholder="一行一条，以 - * 1. 开头也认&#10;会议待办直接粘：整理客户名单 @郑国栋 11-02"></textarea>
+        </label>
+        <div class="paste-foot">
+          <span class="yh-hint">每行最多 <%= titleMax %> 字，一次最多 <%= rowsMax %> 条</span>
+          <button class="yh-btn" id="paste-btn" type="button">预览</button>
+        </div>
+      </section>
+      <section class="yh-card">
+        <h2 class="section-title">上传文件</h2>
+        <input class="file-input" id="file-input" type="file" accept="<%= accept %>" data-max="<%= fileMax %>" aria-label="选择文件">
+        <label class="drop" id="drop" for="file-input">
+          <strong>点这里选文件，或拖进来</strong>
+          <span><%= acceptLabel %>，不超过 2MB</span>
+        </label>
+        <p class="yh-hint" id="unsupported"><%= unsupported %>。</p>
+      </section>
+    </div>
+    <p class="import-error" id="import-error" role="alert" hidden></p>
+  </div>
+
+  <section id="stage-preview" hidden>
+    <div class="head-row preview-head">
+      <div>
+        <h2 class="preview-title">导入预览</h2>
+        <p class="yh-sub" id="preview-sum"></p>
+      </div>
+      <button class="yh-btn yh-btn--ghost" id="preview-back" type="button">返回修改</button>
+    </div>
+    <ul class="bare notices" id="preview-notices"></ul>
+    <ul class="bare preview-list" id="preview-rows"></ul>
+    <div class="preview-foot">
+      <button class="yh-btn" id="commit-btn" type="button">导入</button>
+    </div>
+  </section>
+</main>
+<%- include('partials/picker') %>
+<%- include('layout/foot') %>

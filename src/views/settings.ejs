@@ -1,0 +1,61 @@
+<%- include('layout/head') %>
+<main class="yh-app">
+  <a class="back" href="./">‹ 收件箱</a>
+  <div class="yh-page-head">
+    <h1>设置</h1>
+    <p class="yh-sub">改完立即生效，只影响你自己。</p>
+  </div>
+
+  <section class="yh-card settings-group" id="settings">
+    <h2 class="section-title">默认值</h2>
+    <div class="yh-field">
+      <span class="yh-label" id="default-label">默认指派对象</span>
+      <button class="pick" id="s-assignee" type="button" aria-labelledby="default-label s-assignee-name"<%= canPick ? '' : ' disabled' %> data-id="<%= person.id ?? '' %>"><span class="pick-text" id="s-assignee-name"><%= person.name || '不指派' %></span><span aria-hidden="true">›</span></button>
+      <p class="yh-hint"><%= person.gone ? '原来的默认对象已不在平台上，已按不指派处理。' : canPick ? '快捷录入和导入时预填，保存前能改。话里提到的人优先；AI 入口不用它。' : '本地单人模式没接平台，不能指派。' %></p>
+    </div>
+    <label class="yh-field"><span class="yh-label">快捷录入默认截止</span>
+      <span class="yh-select"><select id="s-quick-due">
+        <% for (const [code, label] of quickDues) { %><option value="<%= code %>"<%= code === cfg.quick_due ? ' selected' : '' %>><%= label %></option><% } %>
+      </select></span>
+      <span class="yh-hint">这句话里没提时间时预填，保存前能改。</span>
+    </label>
+  </section>
+
+  <section class="yh-card settings-group">
+    <h2 class="section-title">提醒</h2>
+    <label class="yh-field"><span class="yh-label">每日摘要时间</span>
+      <span class="yh-select"><select id="s-digest">
+        <% for (const [code, label] of digestTimes) { %><option value="<%= code %>"<%= code === cfg.digest_time ? ' selected' : '' %>><%= label %></option><% } %>
+      </select></span>
+      <span class="yh-hint">把今天到期和逾期的事发给你。</span>
+    </label>
+    <label class="toggle"><span><span class="toggle-title">周报周五推送</span><span class="yh-hint">周五 17:00 发一份本周周报。</span></span>
+      <span class="switch"><input id="s-weekly" type="checkbox"<%= cfg.weekly_push ? ' checked' : '' %>><i></i></span>
+    </label>
+    <label class="toggle"><span><span class="toggle-title">指派时 @ 到人</span><span class="yh-hint">你指派一件事时给对方发平台通知。关掉后事情照样派过去，只是不提醒。</span></span>
+      <span class="switch"><input id="s-notify" type="checkbox"<%= cfg.notify_assignee ? ' checked' : '' %>><i></i></span>
+    </label>
+    <% if (!pushOn) { %><p class="push-off" id="s-push-off">定时推送现在没开（管理员要设 INBOX_DIGEST=1），上面的摘要和周报时间先存着，开通后才会发。</p><% } %>
+  </section>
+
+  <section class="yh-card settings-group" id="usage">
+    <h2 class="section-title">使用说明</h2>
+    <p class="usage-line"><strong>怎么记</strong>：在首页输入框写一句话，确认后保存；别处的清单点「导入」搬进来。</p>
+    <p class="usage-line"><strong>怎么派</strong>：确认待办时选「指派给」；已有的事点「选择」或在手机上长按，批量指派。</p>
+    <p class="usage-line"><strong>去重规则</strong>：<span id="s-dedupe"><%= dedupeRule %></span></p>
+    <details class="fold">
+      <summary>键盘操作（桌面）</summary>
+      <dl class="info keys">
+        <div><dt><kbd>j</kbd> / <kbd>k</kbd></dt><dd>下一条 / 上一条</dd></div>
+        <div><dt><kbd>x</kbd></dt><dd>选中当前这条</dd></div>
+        <div><dt><kbd>Enter</kbd></dt><dd>打开当前这条</dd></div>
+        <div><dt><kbd>e</kbd></dt><dd>改期（选中的，没选就是当前这条）</dd></div>
+        <div><dt><kbd>z</kbd></dt><dd>撤销刚才的批量操作</dd></div>
+        <div><dt><kbd>Esc</kbd></dt><dd>退出多选</dd></div>
+        <div><dt><kbd>?</kbd></dt><dd>来到这份说明</dd></div>
+      </dl>
+    </details>
+  </section>
+</main>
+<% if (canPick) { %><%- include('partials/picker') %><% } %>
+<%- include('layout/foot') %>

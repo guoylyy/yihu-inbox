@@ -1,0 +1,25 @@
+<section>
+  <h2>今日进度</h2>
+  <% const all = rail.progress.done + rail.progress.left %>
+  <div class="stats">
+    <div class="yh-stat"><b id="rail-done"><%= rail.progress.done %></b><span>已完成</span></div>
+    <div class="yh-stat"><b id="rail-left"><%= rail.progress.left %></b><span>还没做</span></div>
+  </div>
+  <% if (all) { %><progress class="meter" max="<%= all %>" value="<%= rail.progress.done %>" aria-label="今日进度 <%= rail.progress.done %> / <%= all %>"></progress><% } %>
+</section>
+<% if (rail.people.length) { %>
+  <section>
+    <h2>按人分布</h2>
+    <ul class="bare" id="rail-people">
+      <% for (const p of rail.people) { %><li class="side-row"><span><%= p.name %></span><span class="count"><%= p.count %> 条</span></li><% } %>
+    </ul>
+  </section>
+<% } %>
+<% if (rail.recent.length) { %>
+  <section>
+    <h2>最近活动</h2>
+    <ul class="bare" id="rail-recent">
+      <% for (const e of rail.recent) { %><li class="side-activity"><span class="side-title"><%= e.title %></span><span class="count"><%= e.text %> · <%= e.when %></span></li><% } %>
+    </ul>
+  </section>
+<% } %>

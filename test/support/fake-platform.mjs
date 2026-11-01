@@ -13,6 +13,7 @@ export function startFakePlatform({ port = 0, appTarget = null, prefix = '/apps/
   const state = {
     llm: () => JSON.stringify({ title: '默认任务', due_date: null, due_time: null, priority: 0 }),
     usersDown: false,
+    models: [{ id: 'gpt-x', name: '测试模型', default: true }],
     notifications: [],
     events: [],
     loginAs: 11
@@ -66,6 +67,14 @@ export function startFakePlatform({ port = 0, appTarget = null, prefix = '/apps/
       const content = await state.llm(JSON.parse(await readBody(req)))
       if (content === undefined) return json(res, 503, { error: { message: '模型不可用' } })
       return json(res, 200, { choices: [{ message: { role: 'assistant', content } }] })
+    }
+    if (url.pathname === '/api/open/llm/models') {
+      if (!state.models) return json(res, 503, { error: { message: '模型不可用' } })
+      return json(res, 200, { object: 'list', data: state.models })
+    }
+    if (url.pathname === '/logout') {
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
+      return res.end(`平台已退出 ${url.search}`)
     }
     if (url.pathname === '/api/open/notify') {
       state.notifications.push(JSON.parse(await readBody(req)))

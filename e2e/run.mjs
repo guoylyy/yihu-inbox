@@ -1,17 +1,15 @@
 // 真机式实测：独立实例 + 临时库，经 /apps/inbox 前缀访问（和平台拓扑一致）。截图和报告写到 artifacts/
 //   npm run e2e
-import { execFileSync, spawn, spawnSync } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import mysql from 'mysql2/promise'
 import { chromium, webkit } from 'playwright-core'
 import { PEOPLE, startFakePlatform } from '../test/support/fake-platform.mjs'
+import { VERSION } from '../src/version.js'
+import { SIZES, SMALL_TARGETS, startApp, startDatabase } from './support.mjs'
 
 const APP_PORT = Number(process.env.E2E_APP_PORT) || 3050
 const PLATFORM_PORT = APP_PORT + 1
-const DB_PORT = 3351
-const NAME = 'inbox-e2e-mysql'
 const OUT = 'artifacts/e2e'
-const SIZES = [['375', 375, 667], ['768', 768, 1024], ['1440', 1440, 900]]
 const LONG_TITLE = '把第三季度华东区所有经销商的返利对账单核对完并同步给财务部，顺便确认一下合同里关于年度框架协议续签条款的最新修订版本是否已经由法务部门审批通过了'
 const SENTENCE = '明天下午三点前把合同发给张三，重要'
 
@@ -23,13 +21,8 @@ const check = (name, pass, detail = '') => {
   console.log(`${pass ? '✅' : '❌'} ${name}${detail ? `  ${detail}` : ''}`)
 }
 
-const docker = (...a) => execFileSync('docker', a, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }).trim()
-spawnSync('docker', ['rm', '-f', NAME], { stdio: 'ignore' })
-docker('run', '-d', '--rm', '--name', NAME, '-e', 'MYSQL_ROOT_PASSWORD=e2e', '-e', 'MYSQL_DATABASE=inbox_e2e', '-p', `127.0.0.1:${DB_PORT}:3306`, 'mysql:8.0', '--skip-log-bin')
-const dbUrl = `mysql://root:e2e@127.0.0.1:${DB_PORT}/inbox_e2e`
-for (let i = 0; i < 120; i++) {
-  try { await (await mysql.createConnection(dbUrl)).end(); break } catch { await new Promise((r) => setTimeout(r, 1000)) }
-}
+const db = await startDatabase()
+const dbUrl = db.url
 
 const STAFF = [
   ...PEOPLE,
@@ -42,28 +35,7 @@ const tomorrow = new Date(Date.now() + 8 * 3600_000 + 86400_000).toISOString().s
 platform.state.llm = () => JSON.stringify({ title: '把合同发给张三', due_date: tomorrow, due_time: '15:00', priority: 3 })
 
 const appUrl = `${platform.url}/apps/inbox`
-const server = spawn(process.execPath, ['src/server.js'], {
-  stdio: 'inherit',
-  env: { ...process.env, NODE_ENV: 'staging', PORT: String(APP_PORT), DATABASE_URL: dbUrl, YH_CLIENT_ID: 'cid', YH_CLIENT_SECRET: 'secret', YH_API_URL: platform.url, YH_WEB_URL: platform.url, YH_APP_URL: appUrl, YH_BASE_PATH: '/apps/inbox' }
-})
-for (let i = 0; i < 50; i++) {
-  const r = await fetch(`http://127.0.0.1:${APP_PORT}/health`).catch(() => null)
-  if (r?.ok) break
-  await new Promise((res) => setTimeout(res, 200))
-}
-
-const SMALL_TARGETS = () => {
-  const out = []
-  const isVisible = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden' }
-  for (const el of document.querySelectorAll('a, button, input, textarea, select, summary, [role="button"], label:has(input)')) {
-    if (!isVisible(el)) continue
-    const dialogs = [...document.querySelectorAll('dialog[open]')]
-    if (dialogs.length && !dialogs[dialogs.length - 1].contains(el)) continue
-    const r = el.getBoundingClientRect()
-    if (r.width < 44 || r.height < 44) out.push(`${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}${el.className ? `.${String(el.className).replace(/\s+/g, '.')}` : ''} ${Math.round(r.width)}×${Math.round(r.height)} ${(el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 16)}`)
-  }
-  return out
-}
+const server = await startApp({ port: APP_PORT, env: { DATABASE_URL: dbUrl, YH_CLIENT_ID: 'cid', YH_CLIENT_SECRET: 'secret', YH_API_URL: platform.url, YH_WEB_URL: platform.url, YH_APP_URL: appUrl, YH_BASE_PATH: '/apps/inbox' } })
 
 async function noScroll(page, label) {
   const r = await page.evaluate(() => ({ sw: document.body.scrollWidth, iw: window.innerWidth, dw: document.documentElement.scrollWidth }))
@@ -71,6 +43,7 @@ async function noScroll(page, label) {
 }
 
 async function collect44(page, label) {
+  await page.waitForTimeout(260) // 弹层动画停稳再量
   for (const item of await page.evaluate(SMALL_TARGETS)) report.under44.push(`${label}: ${item}`)
 }
 
@@ -96,10 +69,8 @@ try {
   {
     const { ctx, page } = await loginContext(browser, 11, { width: 375, height: 667 })
     await page.screenshot({ path: `${OUT}/375-empty.png` })
-    check('空态有一句说明和一个示例', await page.locator('.empty [data-example]').count() === 1)
-    await page.click('[data-example]')
-    check('点示例填进输入框', (await page.inputValue('#quick-input')) === SENTENCE)
-    await page.fill('#quick-input', '')
+    check('空态一句话', (await page.textContent('.empty p')) === '今天没有要做的 —— 上面记一条，或导入会议待办')
+    check('空态一个导入文字链', (await page.locator('.empty a, .empty button').allTextContents()).join() === '导入' && (await page.getAttribute('.empty a', 'href')) === 'import')
     await collect44(page, '375 空态')
     await noScroll(page, '375 空态')
     await ctx.close()
@@ -115,9 +86,16 @@ try {
     const { ctx, page } = await loginContext(browser, 11, { width, height })
     const label = `${tag}`
 
-    check(`${label} 版本号在右上角可见`, await page.locator('#version').isVisible() && (await page.locator('#version').textContent()) === 'v0.1.2')
-    const box = await page.locator('#version').boundingBox()
-    check(`${label} 版本号靠右上`, box.x + box.width > width / 2 && box.y < 60, `x=${Math.round(box.x)} y=${Math.round(box.y)}`)
+    if (tag === '375') {
+      // 窄屏顶栏放不下，版本号收进头像菜单（平台 VI 的规定）
+      await page.click('#user-menu summary')
+      check(`${label} 版本号在头像菜单里`, (await page.textContent('.yh-menu-ver')) === `版本 v${VERSION}`)
+      await page.keyboard.press('Escape')
+    } else {
+      check(`${label} 版本号在右上角可见`, await page.locator('#version').isVisible() && (await page.locator('#version').textContent()) === `v${VERSION}`)
+      const box = await page.locator('#version').boundingBox()
+      check(`${label} 版本号靠右上`, box.x + box.width > width / 2 && box.y < 60, `x=${Math.round(box.x)} y=${Math.round(box.y)}`)
+    }
     await page.waitForSelector('.task')
     await page.screenshot({ path: `${OUT}/${tag}-list.png` })
     check(`${label} 逾期标红`, await page.locator('.late', { hasText: '逾期 2 天' }).count() === 1)
@@ -140,6 +118,7 @@ try {
     await page.screenshot({ path: `${OUT}/${tag}-confirm.png` })
     await noScroll(page, `${label} 确认态`)
     if (tag === '375') await collect44(page, '375 确认态')
+    await page.waitForTimeout(260) // 手机上弹层有 0.2 秒上滑动画，等它停稳再量
     const save = await page.locator('#sheet-save').boundingBox()
     check(`${label} 主按钮在可见区`, save.y + save.height <= height, `bottom=${Math.round(save.y + save.height)}/${height}`)
 
@@ -172,12 +151,12 @@ try {
     await page.waitForSelector('#sheet:not([open])', { state: 'attached' })
     await page.click('.tab[data-view="open"]')
     await page.waitForSelector(`.task:has-text("把合同发给张三（${tag}）")`)
-    check(`${label} 列表显示指派给谁`, await page.locator(`.task:has-text("把合同发给张三（${tag}）") .meta`, { hasText: '指派给 李雷' }).count() === 1)
+    check(`${label} 列表显示指派给谁`, await page.locator(`.task:has-text("把合同发给张三（${tag}）") .meta`, { hasText: '指派 李雷' }).count() === 1)
 
     // 长标题：列表截断，点开看全
     await page.click('.tab[data-view="today"]')
-    await page.waitForSelector('.task')
-    const clamp = await page.locator('.task .title').first().evaluate((el) => el.scrollHeight > el.clientHeight + 2 || getComputedStyle(el).webkitLineClamp)
+    await page.waitForSelector('.task:has-text("华东区")')
+    const clamp = await page.locator('.task:has-text("华东区") .title').evaluate((el) => el.scrollHeight > el.clientHeight + 2 || getComputedStyle(el).webkitLineClamp)
     check(`${label} 长标题截断`, !!clamp)
     await page.locator('.task:has-text("华东区") [data-open]').click()
     await page.waitForSelector('#sheet[open]')
@@ -212,7 +191,7 @@ try {
       await page.click('#quick-btn')
       await page.waitForSelector('#sheet[open]')
       await page.setViewportSize({ width: 375, height: 380 })
-      await page.waitForTimeout(100)
+      await page.waitForTimeout(300)
       const b = await page.locator('#sheet-save').boundingBox()
       check('375 键盘弹起时主按钮仍在可视区', b.y + b.height <= 380, `bottom=${Math.round(b.y + b.height)}/380`)
       await page.setViewportSize({ width: 375, height: 667 })
@@ -327,6 +306,7 @@ try {
     await page.fill('#quick-input', SENTENCE)
     await page.click('#quick-btn')
     await page.waitForSelector('#sheet[open]')
+    await page.waitForTimeout(260)
     const b = await page.locator('#sheet-save').boundingBox()
     check('WebKit 375 主按钮在可见区', b.y + b.height <= 667, `bottom=${Math.round(b.y + b.height)}`)
     await page.screenshot({ path: `${OUT}/375-webkit-confirm.png` })
@@ -342,7 +322,7 @@ try {
   await pool.end()
   server.kill()
   await platform.close()
-  spawnSync('docker', ['rm', '-f', NAME], { stdio: 'ignore' })
+  db.stop()
 }
 
 report.under44 = [...new Set(report.under44)]
